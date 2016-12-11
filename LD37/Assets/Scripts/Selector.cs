@@ -20,9 +20,10 @@ public class Selector : MonoBehaviour {
 			GameObject obj = hit.transform.gameObject;
 			Selectable selectable = obj.GetComponent<Selectable> ();
 			if (selectable != null) {
-				if (lastSelectable != selectable) {
-					selectable.OnLeaveCallback ();
-				} else {
+				if (lastSelectable != selectable || lastSelectable.isSelected == false) {
+					if (lastSelectable != null) {
+						lastSelectable.OnLeaveCallback ();
+					}
 					selectable.OnOverCallback ();
 				}
 				lastSelectable = selectable;

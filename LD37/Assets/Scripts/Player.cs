@@ -6,6 +6,7 @@ public class Player : MonoBehaviour {
 
 	public enum PlayerState {
 		idle,
+		holding_object,
 		moving_to_next_room,
 		homer_is_ded
 	}
@@ -15,6 +16,9 @@ public class Player : MonoBehaviour {
 	public PlayerState state;
 	public float speed;
 	public float roomLength;
+
+	public GameObject holding;
+	private Vector3 worldOffset;
 
 	private Vector3 goal;
 	private Vector3 initialRot;
@@ -41,6 +45,24 @@ public class Player : MonoBehaviour {
 				selector.inputEnabled = true;
 				state = PlayerState.idle;
 			}
+		}
+
+		if (state == PlayerState.holding_object) {
+			Vector3 pos = Camera.main.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0)) + worldOffset;
+			Vector3 new_pos = new Vector3 (pos.x, holding.transform.position.y, pos.y);
+			holding.transform.position = new_pos;
+		}
+	}
+
+	public void ChangeState (PlayerState state) {
+		this.state = state;
+		switch (state) {
+		case PlayerState.holding_object:
+			Vector3 screenSpace = Camera.main.WorldToViewportPoint (holding.transform.position);
+			worldOffset = holding.transform.position - Camera.main.ViewportToWorldPoint (new Vector3 (0.5f, 0.5f, screenSpace.z));
+			break;
+		default:
+			break;
 		}
 	}
 
