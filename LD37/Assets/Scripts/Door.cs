@@ -14,6 +14,9 @@ public class Door : MonoBehaviour {
 		open = 2<<3
 	}
 
+	/* Specific key to unlock door (optional) */
+	public Key key;
+
 	public float angularSpeed;
 	public bool locked;
 	public Transform hinge;
@@ -24,11 +27,6 @@ public class Door : MonoBehaviour {
 	private float currentDoorRotation;
 	private float doorRotGoal;
 
-	private Vector3 targetVector;
-	private Quaternion targetRotation;
-	private Vector3 originalPosition;
-	private Quaternion originalRotation;
-
 	private Player player;
 
 	void Start () {
@@ -37,24 +35,21 @@ public class Door : MonoBehaviour {
 		currentDoorRotation = 0;
 		player = Transform.FindObjectOfType<Player> ();
 
-		originalPosition = transform.position;
-		originalRotation = transform.rotation;
-
-		transform.RotateAround(hinge.position, Vector3.up, door_open_angle);
-		targetVector = transform.position;
-		targetRotation = transform.rotation;
-
-		transform.position = originalPosition;
-		transform.rotation = originalRotation;
+		selectable.SetPreClickCallback (player.CanMoveToNextRoom);
 	}
 	
 	void Update () {
-		if (!locked && state == DoorState.closed && selectable.isClickedOn) {
-			/* Open door */
-			state = DoorState.opening;
-			doorRotGoal = door_open_angle;
-			selectable.SetSelected (false);
-			player.MoveToNextRoom ();
+		if (state == DoorState.closed && selectable.isClickedOn) {
+			if (locked) {
+				UnlockDoor ();
+				selectable.isClickedOn = false;
+			} else {
+				/* Open door */
+				state = DoorState.opening;
+				doorRotGoal = door_open_angle;
+				selectable.SetSelected (false);
+				player.MoveToNextRoom ();
+			}
 		}
 
 		if (currentDoorRotation != doorRotGoal) {
@@ -62,31 +57,11 @@ public class Door : MonoBehaviour {
 		}
 	}
 
-	int abs (float num) {	
-		if (num > 0)
-			return 1;
-		else if (num < 0)
-			return -1;
-		return 0;
-	}
-
 	void RotateDoor () {
 		float diff = doorRotGoal - currentDoorRotation;
-
-		float direction = abs (diff);
 		float toRotate = angularSpeed * diff * Time.deltaTime;
 
 		if ((state == DoorState.opening && currentDoorRotation + toRotate > doorRotGoal) || (state == DoorState.closing && currentDoorRotation + toRotate < doorRotGoal)) { 
-			/*
-			if (state == DoorState.opening) {
-				transform.position = targetVector;
-				transform.rotation = targetRotation;
-			} else {
-				transform.position = originalPosition;
-				transform.rotation = originalRotation;
-			}
-			*/
-			//currentDoorRotation = doorRotGoal;
 			toRotate = doorRotGoal - currentDoorRotation;
 		}
 		
@@ -99,6 +74,16 @@ public class Door : MonoBehaviour {
 			state = DoorState.closed;
 			selectable.isClickedOn = false;
 			Debug.Log ("door is closed!");
+		}
+	}
+
+	public void UnlockDoor () {
+		if (key != null) {
+			if (key.keyId == player.GetKeyId()) {
+				locked = false;
+			}
+		} else {
+			locked = false;
 		}
 	}
 

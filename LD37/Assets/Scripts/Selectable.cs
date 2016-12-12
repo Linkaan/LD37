@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public delegate bool PreClick ();
+public delegate void OnClick ();
+
 public class Selectable : MonoBehaviour {
 
 	public Material highlightedMat;
@@ -10,6 +13,8 @@ public class Selectable : MonoBehaviour {
 	public bool isClickedOn = false;
 	public bool isSelected = false;
 
+	private PreClick PreClickCallback;
+	private OnClick OnClickCallback;
 	private MeshRenderer[] childrenRenderers;
 	private Dictionary<MeshRenderer, Material> originalMats;
 
@@ -19,7 +24,17 @@ public class Selectable : MonoBehaviour {
 		foreach (MeshRenderer child in childrenRenderers) {
 			this.originalMats [child] = child.material;
 		}
+		if (this.PreClickCallback == null)
+			this.PreClickCallback = DefaultPreClickCallback;
+		if (this.OnClickCallback == null)
+			this.OnClickCallback = DefaultOnClickCallback;
 	}
+
+	bool DefaultPreClickCallback () {
+		return true;
+	}
+
+	void DefaultOnClickCallback () { }
 
 	void updateMats () {
 		foreach (MeshRenderer child in childrenRenderers) {
@@ -32,11 +47,22 @@ public class Selectable : MonoBehaviour {
 	}
 
 	void Update () {
-		if (isSelected) {
-			if (Input.GetMouseButtonDown (0)) {
-				isClickedOn = true;
+		if (isSelected) {			
+			if (Input.GetMouseButtonDown (0) || Input.GetKeyDown (KeyCode.Space)) {
+				if (PreClickCallback ()) {
+					isClickedOn = true;
+					OnClickCallback ();
+				}
 			}
 		}
+	}
+
+	public void SetPreClickCallback (PreClick callback) {
+		this.PreClickCallback = callback;
+	}
+
+	public void SetOnClickCallback (OnClick callback) {
+		this.OnClickCallback = callback;
 	}
 		
 	public void SetSelected (bool isSelected) {

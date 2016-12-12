@@ -15,11 +15,11 @@ public class Selector : MonoBehaviour {
 		RaycastHit hit;
 
 		Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-		Debug.DrawRay(ray.origin, ray.direction * 100);
+		Debug.DrawRay(ray.origin, ray.direction * 12);
 		if (Physics.Raycast (ray, out hit)) {
 			GameObject obj = hit.transform.gameObject;
 			Selectable selectable = obj.GetComponent<Selectable> ();
-			if (selectable != null) {
+			if (selectable != null && (lastSelectable == null || !lastSelectable.isClickedOn)) {
 				if (lastSelectable != selectable || lastSelectable.isSelected == false) {
 					if (lastSelectable != null) {
 						lastSelectable.OnLeaveCallback ();

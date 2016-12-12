@@ -18,8 +18,8 @@ public class SmoothMouseLook : MonoBehaviour {
 
 	public bool inputEnabled = true;
 
-	float rotationX = 0F;
-	float rotationY = 0F;
+	public float rotationX = 0F;
+	public float rotationY = 0F;
 
 	private List<float> rotArrayX = new List<float>();
 	float rotAverageX = 0F;	
@@ -53,7 +53,7 @@ public class SmoothMouseLook : MonoBehaviour {
 	}
 
 	void Update ()
-	{
+	{/*
 		if (Input.GetKeyDown (KeyCode.Escape)) {
 			setMouseLocked (false);
 		}
@@ -61,7 +61,7 @@ public class SmoothMouseLook : MonoBehaviour {
 		if (mouseWithin && Input.GetMouseButtonDown (0)) {
 			setMouseLocked (true);
 		}
-
+*/
 		if (!inputEnabled)
 			return;
 		
