@@ -43,7 +43,7 @@ public class OnRopeCut : MonoBehaviour {
 			foreach (HingeJoint joint in joints) {
 					Destroy (joint);
 			}
-			door.key = keyBody.gameObject.AddComponent<Key> ();
+			//door.key = keyBody.gameObject.AddComponent<Key> ();
 			keyBody.useGravity = false;
 			keyBody.transform.parent = this.transform;
 			keyBody.AddTorque (Vector3.forward * 10, ForceMode.Impulse);

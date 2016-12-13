@@ -7,8 +7,8 @@ public class SmoothMouseLook : MonoBehaviour {
 
 	public enum RotationAxes { MouseXAndY = 0, MouseX = 1, MouseY = 2 }
 	public RotationAxes axes = RotationAxes.MouseXAndY;
-	public float sensitivityX = 15F;
-	public float sensitivityY = 15F;
+	public float sensitivityX = 1F;
+	public float sensitivityY = 1F;
 
 	public float minimumX = -360F;
 	public float maximumX = 360F;
@@ -155,6 +155,22 @@ public class SmoothMouseLook : MonoBehaviour {
 		mouseWithin = true;
 		setMouseLocked (true);
 	}
+
+    public void SetInputEnabled (bool enabled)
+    {
+        if (enabled)
+        {
+            rotationX = 0F;
+            rotationY = 0F;
+
+            rotArrayX = new List<float>();
+            rotAverageX = 0F;
+
+            rotArrayY = new List<float>();
+            rotAverageY = 0F;
+        }
+        inputEnabled = enabled;
+    }
 
 	public static float ClampAngle (float angle, float min, float max)
 	{

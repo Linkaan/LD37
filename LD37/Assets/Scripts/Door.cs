@@ -14,10 +14,17 @@ public class Door : MonoBehaviour {
 		open = 2<<3
 	}
 
-	/* Specific key to unlock door (optional) */
-	public Key key;
+    /* Specific key to unlock door (optional) */
+    public Key keyObj;
+	public string key;
 
-	public float angularSpeed;
+    public AudioClip open;
+    public AudioClip close;
+
+    public AudioClip lockedSfx;
+    public AudioClip unlock;
+
+    public float angularSpeed;
 	public bool locked;
 	public Transform hinge;
 
@@ -30,7 +37,9 @@ public class Door : MonoBehaviour {
 	private Player player;
 
 	void Start () {
-		state = DoorState.closed;
+        key = keyObj != null ? keyObj.keyId : null;
+
+        state = DoorState.closed;
 		selectable = this.GetComponent<Selectable> ();
 		currentDoorRotation = 0;
 		player = Transform.FindObjectOfType<Player> ();
@@ -39,13 +48,15 @@ public class Door : MonoBehaviour {
 	}
 	
 	void Update () {
-		if (state == DoorState.closed && selectable.isClickedOn) {
+		if (state == DoorState.closed && selectable.isClickedOn) {            
 			if (locked) {
-				UnlockDoor ();
-				selectable.isClickedOn = false;
-			} else {
-				/* Open door */
-				state = DoorState.opening;
+                Debug.Log(key + " , " + player.GetKeyId());
+                UnlockDoor ();
+				selectable.isClickedOn = false;                
+            } else {
+                /* Open door */
+                AudioSource.PlayClipAtPoint(open, transform.position);
+                state = DoorState.opening;
 				doorRotGoal = door_open_angle;
 				selectable.SetSelected (false);
 				player.MoveToNextRoom ();
@@ -79,11 +90,15 @@ public class Door : MonoBehaviour {
 
 	public void UnlockDoor () {
 		if (key != null) {
-			if (key.keyId == player.GetKeyId()) {
+			if (key == player.GetKeyId()) {
 				locked = false;
-			}
-		} else {
-			locked = false;
+                Transform.FindObjectOfType<UserNotifier>().ShowText("Door unlocked!", 1);
+                AudioSource.PlayClipAtPoint(unlock, transform.position);
+            } else
+            {
+                Transform.FindObjectOfType<UserNotifier>().ShowText("This door is locked!", 1);
+                AudioSource.PlayClipAtPoint(lockedSfx, transform.position);
+            }
 		}
 	}
 
@@ -92,6 +107,7 @@ public class Door : MonoBehaviour {
 		if (state == DoorState.open || state == DoorState.opening) {
 			state = DoorState.closing;
 			doorRotGoal = 0;
-		}
+            AudioSource.PlayClipAtPoint(close, transform.position);
+        }
 	}
 }

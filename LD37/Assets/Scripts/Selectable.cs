@@ -8,21 +8,23 @@ public delegate void OnClick ();
 public class Selectable : MonoBehaviour {
 
 	public Material highlightedMat;
+    private Color highlightedColor;
 
-	/* To be updated by other scripts */
-	public bool isClickedOn = false;
+    /* To be updated by other scripts */
+    public bool isClickedOn = false;
 	public bool isSelected = false;
 
 	private PreClick PreClickCallback;
 	private OnClick OnClickCallback;
 	private MeshRenderer[] childrenRenderers;
-	private Dictionary<MeshRenderer, Material> originalMats;
+	private Dictionary<MeshRenderer, Color> originalColor;
 
 	void Start () {
+        this.highlightedColor = new Color(0f, 1f, 0f);
 		this.childrenRenderers = this.GetComponentsInChildren<MeshRenderer> ();
-		this.originalMats = new Dictionary<MeshRenderer, Material> ();
+		this.originalColor = new Dictionary<MeshRenderer, Color> ();
 		foreach (MeshRenderer child in childrenRenderers) {
-			this.originalMats [child] = child.material;
+			this.originalColor [child] = child.material.color;
 		}
 		if (this.PreClickCallback == null)
 			this.PreClickCallback = DefaultPreClickCallback;
@@ -39,10 +41,13 @@ public class Selectable : MonoBehaviour {
 	void updateMats () {
 		foreach (MeshRenderer child in childrenRenderers) {
 			if (this.isSelected) {
-				child.material = highlightedMat;
-			} else {
-				child.material = originalMats[child];
-			}
+                //child.material = highlightedMat;
+                //child.material.SetColor("_TintColor", highlightedColor);
+                child.material.color = highlightedColor;
+            } else {
+                //child.material.SetColor("_TintColor", Color.clear);
+                child.material.color = originalColor[child];
+            }
 		}
 	}
 

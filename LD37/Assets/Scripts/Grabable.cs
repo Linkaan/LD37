@@ -21,7 +21,8 @@ public class Grabable : MonoBehaviour {
 				player.ChangeState (Player.PlayerState.holding_object);
 			}
 		} else if (selectable.isClickedOn) {
-			selectable.isClickedOn = false;
+            Transform.FindObjectOfType<UserNotifier>().ShowText("This obstacle is too heavy to lift!", 2);
+            selectable.isClickedOn = false;
 		}
 	}
 

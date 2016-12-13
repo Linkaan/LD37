@@ -25,6 +25,9 @@ public class HiddenKey : MonoBehaviour {
 	public float moveForwardAmount = 1f;
 	public float rotateAroundHingeAngle = 90f;
 
+    public AudioClip open;
+    public AudioClip close;
+
 	public bool interactable;
 
 	public bool hasKey;
@@ -145,22 +148,25 @@ public class HiddenKey : MonoBehaviour {
 			final.y -= 2;
 
 			if (Physics.Raycast (final, transform.forward, 12, obstacleMask.value)) {
-				/* can't move because there is an obstacle on this object */
+                /* can't move because there is an obstacle on this object */
+                Transform.FindObjectOfType<UserNotifier>().ShowText("Hmm, seems like there is a obstacle on this carpet.", 2);
 				return;
 			} else {
 				Debug.Log ("NOTHING ON ME!!!!");
 			}
-		}
+		}        
 
-		Debug.Log ("PERFORM ACTION: " + actionState);
+        Debug.Log ("PERFORM ACTION: " + actionState);
 		switch (action) {
 		case ActionOnSelected.move_forward:
 			if (actionState == ActionState.performed_action) {
 				goalPos = initialPos;
 				actionToggle = true;
+                AudioSource.PlayClipAtPoint(close, transform.position);
 			} else {
 				goalPos = initialPos + Vector3.back * moveForwardAmount;
 				actionToggle = false;
+                AudioSource.PlayClipAtPoint(open, transform.position);
 			}
 			actionState = ActionState.perform_action;
 			break;
@@ -168,20 +174,26 @@ public class HiddenKey : MonoBehaviour {
 			if (actionState == ActionState.performed_action) {
 				goalRotAngle = initialRot;
 				actionToggle = true;
+                AudioSource.PlayClipAtPoint(close, transform.position);
 			} else {
 				goalRotAngle = rotateAroundHingeAngle;
 				actionToggle = false;
-			}
+                AudioSource.PlayClipAtPoint(open, transform.position);
+            }
 			actionState = ActionState.perform_action;
 			break;
 		default:
 			Debug.LogError ("Action " + action + " not yet implemented");
 			break;				
 		}
-		if (hasKey) {
-			/* Print message or something */
-			//Key key = this.GetComponentInChildren<Key> ();
-			//player.GiveKey (key);
-		}
+		if (!actionToggle && hasKey) {
+            /* Print message or something */
+            Transform.FindObjectOfType<UserNotifier>().ShowText("Looks like there is something here..", 2);
+            //Key key = this.GetComponentInChildren<Key> ();
+            //player.GiveKey (key);
+        } else if (!actionToggle)
+        {
+            Transform.FindObjectOfType<UserNotifier>().ShowText("Hmm, nothing here..", 1);
+        }
 	}
 }

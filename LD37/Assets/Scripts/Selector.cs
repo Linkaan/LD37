@@ -6,6 +6,8 @@ public class Selector : MonoBehaviour {
 
 	public bool inputEnabled = true;
 
+    public LayerMask layerMask;
+
 	private Selectable lastSelectable;
 
 	void Update () {
@@ -14,9 +16,9 @@ public class Selector : MonoBehaviour {
 
 		RaycastHit hit;
 
-		Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+		Ray ray = Camera.main.ScreenPointToRay(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0));
 		Debug.DrawRay(ray.origin, ray.direction * 12);
-		if (Physics.Raycast (ray, out hit)) {
+		if (Physics.Raycast (ray, out hit, 12, layerMask.value)) {
 			GameObject obj = hit.transform.gameObject;
 			Selectable selectable = obj.GetComponent<Selectable> ();
 			if (selectable != null && (lastSelectable == null || !lastSelectable.isClickedOn)) {

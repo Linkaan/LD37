@@ -5,7 +5,11 @@ using UnityEngine;
 [RequireComponent(typeof (Selectable))]
 public class Potato : MonoBehaviour {
 
-	public Grabable obstacle;
+    public HiddenKey thisHider;
+
+    public AudioClip eat;
+
+    public Grabable obstacle;
 	public HiddenKey hider;
 	public GameObject particles;
 
@@ -19,8 +23,11 @@ public class Potato : MonoBehaviour {
 	}
 
 	void DoPickup () {
-		obstacle.liftable = true;
+        AudioSource.PlayClipAtPoint(eat, player.transform.position);
+        Transform.FindObjectOfType<UserNotifier>().ShowText("That potato was delicious! I feel stronger!", 3);
+        obstacle.liftable = true;
 		hider.interactable = true;
+        thisHider.hasKey = false;
 		Destroy (particles);
 		Destroy (this.gameObject);
 	}

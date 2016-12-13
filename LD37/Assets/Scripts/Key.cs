@@ -5,9 +5,12 @@ using UnityEngine;
 [RequireComponent(typeof (Selectable))]
 public class Key : MonoBehaviour {
 
-	public string keyId;
+    public HiddenKey thisHider;
+    public string keyId;
 
-	private Selectable selectable;
+    public AudioClip keys;
+
+    private Selectable selectable;
 	private Player player;
 
 	void Start () {
@@ -17,7 +20,10 @@ public class Key : MonoBehaviour {
 	}
 
 	void DoPickup () {
-		player.GiveKey (this);
-		Destroy (this.gameObject);
+        AudioSource.PlayClipAtPoint(keys, transform.position);
+        Transform.FindObjectOfType<UserNotifier>().ShowText("Maybe I can use this key to unlock the door...", 2);
+        player.GiveKey (this.keyId);
+        thisHider.hasKey = false;
+        Destroy (this.gameObject);
 	}
 }

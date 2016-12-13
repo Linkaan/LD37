@@ -27,7 +27,7 @@ public class Player : MonoBehaviour {
 	private Vector3 worldOffset;
 
 	private Vector3 goal;
-	private Vector3 initialRot;
+	private Quaternion initialRot;
 
 	private Vector3 startPos;
 	private float startTime;
@@ -36,16 +36,22 @@ public class Player : MonoBehaviour {
 	private float lastRotX;
 	private float lastRotY;
 
-	private Key key;
+    private Vector3 screenPoint;
+    private Vector3 offset;
+
+    private DialogHandler handler;
+
+    private string key;
 
 	void Start () {
 		ChangeState (PlayerState.idle);
-		initialRot = Camera.main.transform.eulerAngles;
+		initialRot = Camera.main.transform.rotation;
+        handler = Transform.FindObjectOfType<DialogHandler>();
 	}
 	
 	void Update () {
 		if (state == PlayerState.moving_to_next_room) {
-			Camera.main.transform.eulerAngles = Vector3.Lerp (Camera.main.transform.eulerAngles, initialRot, Time.deltaTime);
+			Camera.main.transform.rotation = Quaternion.Lerp (Camera.main.transform.rotation, initialRot, Time.deltaTime);
 
 			float distCovered = (Time.time - startTime) * speed;
 			float fracJourney = distCovered / journeyLength;
@@ -59,20 +65,41 @@ public class Player : MonoBehaviour {
 				} else {
 					Debug.LogError ("Could not find room below me!");
 				}
-				mouseScript.inputEnabled = true;
-				selector.inputEnabled = true;
+                if (mouseScript == null)
+                {
+                    mouseScript = Camera.main.gameObject.AddComponent<SmoothMouseLook>();
+                    selector.inputEnabled = true;
+                }
+                selector.inputEnabled = true;
 				ChangeState (PlayerState.idle);
 			}
-		}
+		} else if (handler.dialogState != DialogHandler.DialogState.do_nothing && handler.dialogState != DialogHandler.DialogState.shown_enddialog)
+        {
+            selector.inputEnabled = false;
+            Destroy(mouseScript);
+            mouseScript = null;
+        } else
+        {
+            if (mouseScript == null)
+            {
+                mouseScript = Camera.main.gameObject.AddComponent<SmoothMouseLook>();
+                selector.inputEnabled = true;
+            }
+        }
 
-		if (state == PlayerState.holding_object) {
-			if (Input.GetMouseButtonDown (0) || Input.GetKeyDown (KeyCode.Space)) {				
+        if (state == PlayerState.holding_object) {
+			if (Input.GetMouseButtonUp (0) || Input.GetKeyUp (KeyCode.Space)) {				
 				ChangeState (PlayerState.idle);
 				holding.Unselect ();
 			} else {
-				Vector3 newPos = holding.transform.position
-				                + Vector3.forward * (lastRotY - mouseScript.rotationY)
-				                + Vector3.right * (lastRotX - mouseScript.rotationX);
+                float y = holding.transform.position.y;
+                Vector3 curScreenPoint = new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z);
+
+                Vector3 newPos = Camera.main.ScreenToWorldPoint(curScreenPoint) + offset;
+                newPos.y = y;
+               // Vector3 newPos = holding.transform.position
+				 //               + Vector3.forward * (lastRotY - mouseScript.rotationY) * 1.5f
+				   //             + Vector3.right * (lastRotX - mouseScript.rotationX) * 1.5f;
 				if (newPos.x > room.x2)
 					newPos.x = room.x2;
 				if (newPos.x < room.x1 - worldOffset.x)
@@ -94,19 +121,20 @@ public class Player : MonoBehaviour {
 			}
 			*/
 		}
-		lastRotY = mouseScript.rotationY;
-		lastRotX = mouseScript.rotationX;
+        if (mouseScript != null)
+        {
+            lastRotY = mouseScript.rotationY;
+            lastRotX = mouseScript.rotationX;
+        }
 	}
 
-	public void GiveKey (Key key) {
+    public void GiveKey (string key) {
 		Debug.Log ("I CAN HAZ KEY!");
 		this.key = key;
 	}
 
 	public string GetKeyId () {
-		if (key == null)
-			return null;
-		return key.keyId;
+		return key;
 	}
 
 	public void ChangeState (PlayerState state) {
@@ -115,7 +143,9 @@ public class Player : MonoBehaviour {
 		switch (state) {
 		case PlayerState.holding_object:
 			worldOffset = holding.GetComponent<Renderer>().bounds.size;
-			break;
+            screenPoint = Camera.main.WorldToScreenPoint(holding.transform.position);
+            offset = holding.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z));
+            break;
 		default:
 			break;
 		}
@@ -128,21 +158,27 @@ public class Player : MonoBehaviour {
 		Vector3 pos3 = new Vector3 (transform.position.x, transform.position.y - step * 3 + step / 2 , transform.position.z);
 		Vector3 pos4 = new Vector3 (transform.position.x, transform.position.y - step * 4 + step / 2 , transform.position.z);
 
-		//Debug.DrawRay (pos1, transform.forward * 12);
-		//Debug.DrawRay (pos2, transform.forward * 12);
-		//Debug.DrawRay (pos3, transform.forward * 12);
-		//Debug.DrawRay (pos4, transform.forward * 12);
+        //Debug.DrawRay (pos1, transform.forward * 12);
+        //Debug.DrawRay (pos2, transform.forward * 12);
+        //Debug.DrawRay (pos3, transform.forward * 12);
+        //Debug.DrawRay (pos4, transform.forward * 12);
 
-		return !(Physics.Raycast (pos1, transform.forward, 12, obstacleMask.value) ||
-			Physics.Raycast (pos2, transform.forward, 12, obstacleMask.value) ||
-			Physics.Raycast (pos3, transform.forward, 12, obstacleMask.value) ||
-			Physics.Raycast (pos4, transform.forward, 12, obstacleMask.value));
+        bool canMove = !(Physics.Raycast(pos1, transform.forward, 12, obstacleMask.value) ||
+            Physics.Raycast(pos2, transform.forward, 12, obstacleMask.value) ||
+            Physics.Raycast(pos3, transform.forward, 12, obstacleMask.value) ||
+            Physics.Raycast(pos4, transform.forward, 12, obstacleMask.value));
+
+        if (!canMove && state == PlayerState.idle)
+            Transform.FindObjectOfType<UserNotifier>().ShowText("Hmm, seems like there is a obstacle in the way.", 2);
+
+        return canMove;
 	}
 
 	public void MoveToNextRoom () {
-		mouseScript.inputEnabled = false;
 		selector.inputEnabled = false;
-		startPos = transform.position;
+        Destroy(mouseScript);
+        mouseScript = null;
+        startPos = transform.position;
 		startTime = Time.time;
 		goal = new Vector3 (transform.position.x, transform.position.y, transform.position.z - roomLength);
 		journeyLength = Vector3.Distance (startPos, goal);
