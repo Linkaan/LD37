@@ -102,7 +102,7 @@ public class DialogHandler : MonoBehaviour {
                 break;
 
             case DialogState.show_dialog5:
-                FadeInventoryGroup(dialog5, 0.5f, 0.5f, DialogState.shown_dialog5);
+                FadeInventoryGroup(dialog5, 1, 0.5f, DialogState.shown_dialog5);
                 break;
             case DialogState.shown_dialog5:
                 FadeInventoryGroup(dialog5, 0, 1.0f, DialogState.show_dialog6);

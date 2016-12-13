@@ -3,15 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SetupMouse : MonoBehaviour {
-    public Texture2D cursorTexture;
-    public CursorMode cursorMode = CursorMode.Auto;
-    public Vector2 hotSpot = Vector2.zero;
+
+    void Start()
+    {
+        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = false;
+    }
+
     void OnMouseEnter()
     {
-        Cursor.SetCursor(cursorTexture, hotSpot, cursorMode);
+        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = false;
     }
+
     void OnMouseExit()
     {
-        Cursor.SetCursor(null, Vector2.zero, cursorMode);
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 }
